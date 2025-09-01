@@ -13,7 +13,7 @@
     "next": "15.5.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "zod": "^4.25.0"
+    "zod": "^4.27.10"
   },
   "devDependencies": {
     "typescript": "^5",
