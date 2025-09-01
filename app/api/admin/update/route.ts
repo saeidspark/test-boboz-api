@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { id, xp, level } = body;
 
-  if (!id || xp === undefined || level === undefined) {
+  if (id === undefined || xp === undefined || level === undefined) {
     return NextResponse.json({ error: "id, xp, level required" }, { status: 400 });
   }
 
