@@ -28,16 +28,20 @@ export async function GET(
 
   const item = metadata.find((i: any) => i.edition.toString() === id);
   if (!item) {
-    return new NextResponse(JSON.stringify({ error: "Not found" }), {
-      status: 404,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new NextResponse(
+      JSON.stringify({ error: "Not found" }, null, 2),
+      {
+        status: 404,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      }
+    );
   }
 
   const dyn: DynData = dynData[id] || { xp: 0, level: 0 };
+  const responseData = buildOpenSeaJson(item, dyn);
 
-  return new NextResponse(JSON.stringify(buildOpenSeaJson(item, dyn)), {
+  return new NextResponse(JSON.stringify(responseData, null, 2), {
     status: 200,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json; charset=utf-8" },
   });
 }
