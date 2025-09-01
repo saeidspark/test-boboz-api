@@ -1,19 +1,26 @@
-export function buildOpenSeaJson(
-  base: any,
-  dyn: { xp: number; level: number },
-  externalUrl?: string
-) {
-  const attrs = [
-    ...base.attributes,
-    { trait_type: "XP", value: dyn.xp, display_type: "number" },
-    { trait_type: "Level", value: dyn.level, display_type: "number", max_value: 13 },
-  ];
-  const result: any = {
-    name: base.name,
-    description: base.description || "",
-    image: base.image,
-    attributes: attrs,
-  };
-  if (externalUrl) result.external_url = externalUrl;
-  return result;
+// lib/metadata.ts
+interface BaseData {
+  name: string;
+  description: string;
+  image: string;
+  attributes: any[];
 }
+
+interface DynData {
+  xp: number;
+  level: number;
+}
+
+export const buildOpenSeaJson = (base: BaseData, dyn: DynData, url?: string) => {
+  return {
+    name: base.name,
+    description: base.description,
+    image: base.image,
+    external_url: url,
+    attributes: [
+      ...base.attributes,
+      { trait_type: "XP", value: dyn.xp },
+      { trait_type: "Level", value: dyn.level }
+    ]
+  };
+};

@@ -1,3 +1,4 @@
+// lib/kv.ts
 type KV = {
   get: (key: string) => Promise<any>;
   set: (key: string, value: any) => Promise<boolean>;
@@ -13,5 +14,6 @@ export const kv: KV = {
   },
 };
 
-export const baseKey = (id: string | number) => `nft:${id}:base`;
-export const dynKey = (id: string | number) => `nft:${id}:dyn`;
+// کلیدها همیشه string
+export const baseKey = (id: string | number) => `nft:${id.toString()}:base`;
+export const dynKey = (id: string | number) => `nft:${id.toString()}:dyn`;

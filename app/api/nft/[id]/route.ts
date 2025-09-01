@@ -1,27 +1,21 @@
 import { NextResponse } from "next/server";
-import { kv, baseKey, dynKey } from "@/lib/kv";
+import fs from "fs";
+import path from "path";
 import { buildOpenSeaJson } from "@/lib/metadata";
 
-interface DynData {
-  xp: number;
-  level: number;
-}
+interface DynData { xp: number; level: number }
 
-export async function GET(
-  _: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
+export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
+  const { id } = await context.params;
 
-  const base = await kv.get(baseKey(id));
-  if (!base)
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const filePath = path.join(process.cwd(), "data", "metadata.json");
+  const data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
 
-  const dyn: DynData = (await kv.get(dynKey(id))) || { xp: 0, level: 0 };
-  const url = process.env.COLLECTION_EXTERNAL_URL
-    ? `${process.env.COLLECTION_EXTERNAL_URL}/api/nft/${id}`
-    : undefined;
+  const item = data.find((i: any) => i.edition.toString() === id);
+  if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const json = buildOpenSeaJson(base, dyn, url);
-  return NextResponse.json(json);
+  const dyn: DynData = { xp: 0, level: 0 }; // می‌تونید داینامیک کنید بعداً
+  const url = undefined;
+
+  return NextResponse.json(buildOpenSeaJson(item, dyn, url));
 }
