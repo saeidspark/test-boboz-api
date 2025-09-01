@@ -1,21 +1,23 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { buildOpenSeaJson } from "@/lib/metadata";
 
 interface DynData {
   xp: number;
   level: number;
 }
 
-export async function POST(req: Request) {
-  const body = await req.json();
-  const { id, xp, level } = body;
+export async function GET(
+  _req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
 
-  if (id === undefined || xp === undefined || level === undefined) {
-    return NextResponse.json({ error: "id, xp, level required" }, { status: 400 });
-  }
-
+  const metadataPath = path.join(process.cwd(), "data", "metadata.json");
   const dynPath = path.join(process.cwd(), "data", "dyn.json");
+
+  const metadata = JSON.parse(fs.readFileSync(metadataPath, "utf-8"));
   let dynData: Record<string, DynData> = {};
 
   try {
@@ -24,8 +26,18 @@ export async function POST(req: Request) {
     dynData = {};
   }
 
-  dynData[id] = { xp, level };
-  fs.writeFileSync(dynPath, JSON.stringify(dynData, null, 2));
+  const item = metadata.find((i: any) => i.edition.toString() === id);
+  if (!item) {
+    return new NextResponse(JSON.stringify({ error: "Not found" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
-  return NextResponse.json({ success: true, data: dynData[id] });
+  const dyn: DynData = dynData[id] || { xp: 0, level: 0 };
+
+  return new NextResponse(JSON.stringify(buildOpenSeaJson(item, dyn)), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
