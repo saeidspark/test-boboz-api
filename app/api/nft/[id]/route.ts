@@ -13,7 +13,6 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
-  const tokenId = parseInt(id, 10); // TokenID مثل 0, 1, 2...
 
   const metadataPath = path.join(process.cwd(), "data", "metadata.json");
   const dynPath = path.join(process.cwd(), "data", "dyn.json");
@@ -27,9 +26,7 @@ export async function GET(
     dynData = {};
   }
 
-  // ❌ قبلاً بر اساس edition پیدا می‌کردیم
-  // ✅ حالا مستقیم با ایندکس آرایه
-  const item = metadata[tokenId];
+  const item = metadata.find((i: any) => i.edition.toString() === id);
   if (!item) {
     return new NextResponse(
       JSON.stringify({ error: "Not found" }, null, 2),
@@ -40,16 +37,8 @@ export async function GET(
     );
   }
 
-  const dyn: DynData = dynData[tokenId] || { xp: 0, level: 0 };
-
-  // 🪄 اسم رو تغییر می‌دیم که از 1 شروع بشه
-  const responseData = buildOpenSeaJson(
-    {
-      ...item,
-      name: `Bobo #${tokenId + 1}`, // یعنی tokenId=0 → Bobo #1
-    },
-    dyn
-  );
+  const dyn: DynData = dynData[id] || { xp: 0, level: 0 };
+  const responseData = buildOpenSeaJson(item, dyn);
 
   return new NextResponse(JSON.stringify(responseData, null, 2), {
     status: 200,
