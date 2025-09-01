@@ -10,6 +10,8 @@ interface DynData {
 
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   const { id } = await context.params;
+  const tokenId = parseInt(id); // Token ID از پلتفرم
+  const edition = tokenId + 1;   // Token 0 → edition 1
 
   const metadataPath = path.join(process.cwd(), "data", "metadata.json");
   const dynPath = path.join(process.cwd(), "data", "dyn.json");
@@ -23,9 +25,10 @@ export async function GET(_req: Request, context: { params: Promise<{ id: string
     dynData = {};
   }
 
-  const item = metadata.find((i: any) => i.edition.toString() === id);
+  const item = metadata.find((i: any) => i.edition === edition);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const dyn: DynData = dynData[id] || { xp: 0, level: 0 };
+  const dyn: DynData = dynData[edition.toString()] || { xp: 0, level: 0 };
+
   return NextResponse.json(buildOpenSeaJson(item, dyn));
 }
