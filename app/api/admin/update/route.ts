@@ -1,20 +1,31 @@
 import { NextResponse } from "next/server";
-import { kv, dynKey } from "@/lib/kv";
-import { UpdateDynamicSchema } from "@/lib/schema";
+import fs from "fs";
+import path from "path";
+
+interface DynData {
+  xp: number;
+  level: number;
+}
 
 export async function POST(req: Request) {
-  const auth = (req.headers.get("authorization") || "").split(" ")[1];
-  if (!auth || auth !== process.env.ADMIN_TOKEN)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   const body = await req.json();
-  const parsed = UpdateDynamicSchema.safeParse(body);
-  if (!parsed.success)
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  const { id, xp, level } = body;
 
-  await kv.set(dynKey(parsed.data.id), {
-    xp: parsed.data.xp,
-    level: parsed.data.level,
-  });
-  return NextResponse.json({ ok: true });
+  if (!id || xp === undefined || level === undefined) {
+    return NextResponse.json({ error: "id, xp, level required" }, { status: 400 });
+  }
+
+  const dynPath = path.join(process.cwd(), "data", "dyn.json");
+  let dynData: Record<string, DynData> = {};
+
+  try {
+    dynData = JSON.parse(fs.readFileSync(dynPath, "utf-8"));
+  } catch {
+    dynData = {};
+  }
+
+  dynData[id] = { xp, level };
+  fs.writeFileSync(dynPath, JSON.stringify(dynData, null, 2));
+
+  return NextResponse.json({ success: true, data: dynData[id] });
 }

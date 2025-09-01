@@ -1,4 +1,3 @@
-// lib/metadata.ts
 interface BaseData {
   name: string;
   description: string;
